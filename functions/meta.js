@@ -9,19 +9,15 @@ exports.handler = async function (event, context) {
     headless: true,
   });
 
+  const page = await browser.newPage();
+
   await page.goto("https://spacejelly.dev/");
 
-  await page.focus("#search-query");
-  await page.keyboard.type("api");
-
-  const results = await page.$eval("#search-query + div a", (links) => {
-    return links.map((link) => {
-      return {
-        text: link.innertext,
-        href: link.href,
-      };
-    });
-  });
+  const title = await page.title();
+  const description = await page.$eval(
+    'meta[name="description"]',
+    (element) => element.content
+  );
 
   await browser.close();
 

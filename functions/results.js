@@ -9,15 +9,21 @@ exports.handler = async function (event, context) {
     headless: true,
   });
 
-  await page.goto("https://spacejelly.dev/");
-
   const page = await browser.newPage();
 
-  const title = await page.title();
-  const description = await page.$eval(
-    'meta[name="description"]',
-    (element) => element.content
-  );
+  await page.goto("https://spacejelly.dev/");
+
+  await page.focus("#search-query");
+  await page.keyboard.type("api");
+
+  const results = await page.$$eval("#search-query + div a", (links) => {
+    return links.map(link => {
+      return {
+        text: link.innerText,
+        href: link.href,
+      };
+    });
+  });
 
   await browser.close();
 
@@ -25,10 +31,7 @@ exports.handler = async function (event, context) {
     statusCode: 200,
     body: JSON.stringify({
       status: "Ok",
-      page: {
-        title,
-        description,
-      },
+      results,
     }),
   };
 };
